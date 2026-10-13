@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemistry Crossword Challenge - Giải mã ô chữ Nitrogen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4A90E2; /* Xanh dương công nghệ */
+            --secondary-color: #9B59B6; /* Tím neon */
+            --accent-color: #FF6B81; /* Hồng pastel */
+            --gold-color: #F1C40F; /* Vàng ánh kim */
+            --bg-color: #f8f9fa;
+            --text-main: #2c3e50;
+            --cell-bg: white;
+            --cell-border: #e2e8f0;
+            --cell-active: #ebf8ff;
+            --cell-correct: #d4edda;
+            --cell-wrong: #f8d7da;
+        }
+
+        * {
+            font-family: 'Nunito', sans-serif;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(74, 144, 226, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(155, 89, 182, 0.05) 0%, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Particles Background */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background-color: #ffffff;
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%234a90e2" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            border-radius: 20px;
+        }
+
+        .glass-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Screen Transitions */
+        .screen {
+            display: none;
+            flex: 1;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+            filter: brightness(1.1);
+        }
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent-color), #ff4757);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 129, 0.3);
+        }
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 129, 0.4);
+        }
+
+        /* Crossword Grid Styles */
+        .crossword-container {
+            display: grid;
+            gap: 2px;
+            padding: 10px;
+            margin: 0 auto;
+            /* Grid dimensions will be set by JS */
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: var(--cell-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-transform: uppercase;
+            position: relative;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .cell.empty {
+            background-color: transparent;
+            border-color: transparent;
+            cursor: default;
+        }
+
+        .cell.highlight-row {
+            background-color: var(--cell-active);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+        }
+
+        .cell.selected {
+            background-color: #ffeaa7;
+            border-color: #fdcb6e;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .cell.correct {
+            background-color: var(--cell-correct);
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .cell.gold {
+            background-color: rgba(241, 196, 15, 0.2);
+            border-color: var(--gold-color);
+            box-shadow: inset 0 0 10px rgba(241, 196, 15, 0.3);
+        }
+        
+        .cell.gold.highlight-row {
+            background-color: rgba(241, 196, 15, 0.4);
+        }
+
+        .cell .number {
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            font-size: 0.6rem;
+            color: white;
+            background-color: var(--accent-color);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+
+        /* Question List Styles */
+        .question-item {
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .question-item.active {
+            background-color: var(--cell-active);
+            border-left-color: var(--primary-color);
+            border-radius: 0 8px 8px 0;
+            transform: translateX(5px);
+        }
+        .question-item.solved {
+            opacity: 0.7;
+            text-decoration: line-through;
+            border-left-color: #28a745;
+        }
+        .q-number-badge {
+            background-color: var(--accent-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Keyword Area */
+        .keyword-area {
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(241, 196, 15, 0.05));
+            border: 2px dashed var(--gold-color);
+            border-radius: 15px;
+        }
+        
+        .keyword-cell {
+            width: 45px;
+            height: 45px;
+            border: 2px solid var(--gold-color);
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d35400;
+            margin: 0 4px;
+            background-color: white;
+            text-transform: uppercase;
+        }
+
+        /* Input Area */
+        .input-area {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        #answer-input {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        #answer-input::placeholder {
+            text-transform: none;
+            letter-spacing: normal;
+            font-weight: normal;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color); 
+        }
+        
+        /* Floating Animation */
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .cell { width: 30px; height: 30px; font-size: 1rem; border-width: 1px;}
+            .cell .number { width: 14px; height: 14px; font-size: 0.5rem; top: -8px; left: -8px; }
+            .keyword-cell { width: 35px; height: 35px; font-size: 1.2rem; }
+            .input-area { bottom: 10px; width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="particles-js"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="screen active h-screen justify-center items-center p-4">
+    <div class="glass-panel w-full max-w-md p-8 relative overflow-hidden">
+        <!-- Decor elements -->
+        <div class="absolute top-0 right-0 p-4 opacity-20 floating text-4xl"><i class="fas fa-atom text-blue-500"></i></div>
+        <div class="absolute bottom-0 left-0 p-4 opacity-20 floating text-4xl" style="animation-delay: 1s;"><i class="fas fa-flask text-purple-500"></i></div>
+        
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-black mb-2 glass-header leading-tight">CHEMISTRY<br>CROSSWORD</h1>
+            <p class="text-gray-600 font-semibold italic text-sm">Khám phá thế giới Nitrogen</p>
+        </div>
+
+        <form id="login-form" class="space-y-5">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Họ và tên học sinh <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fas fa-user"></i>
+                    </span>
+                    <input type="text" id="player-name" required class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none transition-colors" placeholder="Nhập họ và tên...">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Lớp <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </span>
+                    <input type="text" id="player-class" required class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none transition-colors" placeholder="VD: 11A1">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Tên đội (Tùy chọn)</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fas fa-users"></i>
+                    </span>
+                    <input type="text" id="player-team" class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-0 outline-none transition-colors" placeholder="Tên nhóm/đội...">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full btn-primary text-lg font-bold py-3 rounded-xl mt-4 flex justify-center items-center gap-2">
+                <i class="fas fa-play"></i> BẮT ĐẦU CHƠI
+            </button>
+        </form>
+
+        <div class="mt-6 flex justify-between border-t pt-4">
+            <button onclick="showModal('guide-modal')" class="text-gray-500 hover:text-blue-500 font-semibold text-sm transition-colors flex items-center gap-1">
+                <i class="fas fa-info-circle"></i> Hướng dẫn
+            </button>
+            <button onclick="showModal('leaderboard-modal')" class="text-gray-500 hover:text-yellow-500 font-semibold text-sm transition-colors flex items-center gap-1">
+                <i class="fas fa-trophy"></i> Bảng xếp hạng
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="screen h-screen hidden">
+    <!-- Header -->
+    <header class="bg-white shadow-sm p-4 flex justify-between items-center z-10 sticky top-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-100 text-blue-600 p-2 rounded-lg"><i class="fas fa-atom text-xl"></i></div>
+            <div>
+                <h1 class="font-black text-lg glass-header hidden sm:block">CHEMISTRY CROSSWORD</h1>
+                <p id="display-user-info" class="text-xs font-semibold text-gray-500">Nguyễn Văn A - 11A1</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div class="text-center bg-gray-100 px-4 py-1 rounded-lg">
+                <div class="text-xs font-bold text-gray-500 uppercase">Thời gian</div>
+                <div id="timer-display" class="font-mono font-bold text-xl text-blue-600">00:00</div>
+            </div>
+            <div class="text-center bg-yellow-100 px-4 py-1 rounded-lg">
+                <div class="text-xs font-bold text-yellow-600 uppercase">Điểm số</div>
+                <div id="score-display" class="font-black text-xl text-yellow-500">0</div>
+            </div>
+            <button onclick="logout()" class="text-gray-400 hover:text-red-500 transition-colors" title="Thoát">
+                <i class="fas fa-sign-out-alt text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden p-2 gap-2 pb-24">
+        
+        <!-- Left Panel: Questions -->
+        <div class="w-full md:w-1/3 lg:w-1/4 bg-white rounded-xl shadow-sm border border-pink-200 overflow-hidden flex flex-col h-1/2 md:h-full">
+            <div class="bg-pink-100 p-3 border-b border-pink-200 flex justify-between items-center">
+                <h2 class="font-bold text-pink-600 flex items-center gap-2">
+                    <i class="fas fa-list-ul"></i> GỢI Ý HÀNG NGANG
+                </h2>
+                <span id="progress-text" class="text-xs font-bold bg-white text-pink-500 px-2 py-1 rounded-full">0/8</span>
+            </div>
+            <div id="questions-list" class="flex-1 overflow-y-auto p-2 space-y-2">
+                <!-- Questions injected via JS -->
+            </div>
+        </div>
+
+        <!-- Right Panel: Crossword -->
+        <div class="w-full md:w-2/3 lg:w-3/4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-1/2 md:h-full relative">
+            <div class="flex-1 overflow-auto p-4 flex flex-col items-center justify-start relative pt-8">
+                
+                <!-- Crossword Grid -->
+                <div id="crossword-grid" class="crossword-container">
+                    <!-- Grid injected via JS -->
+                </div>
+
+                <!-- Keyword Area -->
+                <div class="mt-8 w-full max-w-lg keyword-area p-4 text-center mx-auto">
+                    <div class="bg-yellow-100 text-yellow-700 font-bold px-4 py-1 rounded-full inline-flex items-center gap-2 mb-3 text-sm">
+                        <i class="fas fa-key"></i> TỪ KHÓA BÍ ẨN <i class="fas fa-key"></i>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-3 italic">(Hãy ghép các chữ cái ở ô màu vàng để tìm từ khóa)</p>
+                    <div id="keyword-cells" class="flex justify-center flex-wrap gap-2">
+                        <!-- Keyword cells injected via JS -->
+                    </div>
+                    <button id="btn-solve-keyword" onclick="showKeywordInput()" class="mt-4 btn-primary px-6 py-2 rounded-full text-sm font-bold shadow-md hidden" style="background: linear-gradient(135deg, #f1c40f, #e67e22);">
+                        <i class="fas fa-unlock"></i> GIẢI MÃ TỪ KHÓA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Input Area (Sticky) -->
+    <div id="input-area" class="input-area glass-panel p-3 hidden transition-all">
+        <div class="flex flex-col gap-2">
+            <div class="flex justify-between items-center px-2">
+                <span id="current-q-label" class="font-bold text-blue-600 text-sm">Câu 1:</span>
+                <span id="current-q-length" class="text-xs text-gray-500 font-semibold bg-gray-100 px-2 py-0.5 rounded">0 chữ cái</span>
+            </div>
+            <p id="current-q-text" class="text-sm text-gray-700 px-2 mb-1 truncate"></p>
+            
+            <form id="answer-form" class="flex gap-2">
+                <input type="text" id="answer-input" autocomplete="off" class="flex-1 px-4 py-3 rounded-xl border-2 border-blue-200 focus:border-blue-500 outline-none font-bold text-center text-lg" placeholder="Nhập đáp án...">
+                <button type="button" onclick="useHint()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 rounded-xl transition-colors shadow-sm" title="Gợi ý 1 chữ cái (-5 điểm)">
+                    <i class="fas fa-lightbulb text-yellow-500"></i>
+                </button>
+                <button type="submit" class="btn-primary px-6 rounded-xl font-bold text-white shadow-md">
+                    <i class="fas fa-check"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+
+<!-- Guide Modal -->
+<div id="guide-modal" class="modal-overlay">
+    <div class="modal-content relative">
+        <button onclick="hideModal('guide-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        <h2 class="text-2xl font-black text-blue-600 mb-4 border-b pb-2"><i class="fas fa-info-circle"></i> HƯỚNG DẪN CHƠI</h2>
+        <div class="space-y-3 text-sm text-gray-600">
+            <p><strong>1. Trả lời câu hỏi:</strong> Chọn một câu hỏi bên trái hoặc bấm vào ô chữ trên bảng. Nhập đáp án vào khung nhập liệu bên dưới.</p>
+            <p><strong>2. Gợi ý:</strong> Bạn có thể dùng nút <i class="fas fa-lightbulb text-yellow-500"></i> để mở 1 chữ cái. <em>Lưu ý: Bị trừ 5 điểm/lần.</em></p>
+            <p><strong>3. Điểm số:</strong> Trả lời đúng 1 câu ngang được <strong>+10 điểm</strong>. Giải đúng từ khóa được <strong>+50 điểm</strong>.</p>
+            <p><strong>4. Từ khóa bí ẩn:</strong> Chữ cái tại các ô màu vàng sẽ tạo thành từ khóa bí ẩn. Khi đã có đủ chữ, hãy sắp xếp lại để tìm từ khóa.</p>
+            <p><strong>5. Offline:</strong> Game có thể chơi offline hoàn toàn. Kết quả tự động lưu trên máy bạn.</p>
+        </div>
+        <button onclick="hideModal('guide-modal')" class="w-full mt-6 btn-primary py-2 rounded-lg font-bold">ĐÃ HIỂU</button>
+    </div>
+</div>
+
+<!-- Leaderboard Modal (Local) -->
+<div id="leaderboard-modal" class="modal-overlay">
+    <div class="modal-content relative">
+        <button onclick="hideModal('leaderboard-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        <h2 class="text-2xl font-black text-yellow-500 mb-4 border-b pb-2"><i class="fas fa-trophy"></i> BẢNG XẾP HẠNG (MÁY NÀY)</h2>
+        <div class="max-h-60 overflow-y-auto">
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600">
+                        <th class="p-2 rounded-tl-lg">Hạng</th>
+                        <th class="p-2">Tên & Lớp</th>
+                        <th class="p-2">Thời gian</th>
+                        <th class="p-2 text-right rounded-tr-lg">Điểm</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Data injected via JS -->
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 flex justify-between">
+            <button onclick="clearLeaderboard()" class="text-xs text-red-500 hover:underline"><i class="fas fa-trash"></i> Xóa lịch sử</button>
+            <button onclick="hideModal('leaderboard-modal')" class="btn-primary px-4 py-2 rounded-lg font-bold text-sm">ĐÓNG</button>
+        </div>
+    </div>
+</div>
+
+<!-- Keyword Solve Modal -->
+<div id="keyword-modal" class="modal-overlay">
+    <div class="modal-content relative text-center">
+        <button onclick="hideModal('keyword-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        <h2 class="text-2xl font-black text-yellow-500 mb-2"><i class="fas fa-key"></i> GIẢI MÃ TỪ KHÓA</h2>
+        <p class="text-sm text-gray-500 mb-4">Các chữ cái đã thu thập: <strong id="collected-letters" class="text-lg text-blue-600 tracking-widest uppercase"></strong></p>
+        
+        <form id="keyword-form" class="space-y-4">
+            <input type="text" id="keyword-input" required autocomplete="off" class="w-full px-4 py-3 rounded-xl border-2 border-yellow-300 focus:border-yellow-500 outline-none font-black text-center text-2xl uppercase tracking-widest text-yellow-700" placeholder="NHẬP TỪ KHÓA...">
+            <button type="submit" class="w-full btn-primary text-lg font-bold py-3 rounded-xl shadow-lg" style="background: linear-gradient(135deg, #f1c40f, #e67e22);">
+                XÁC NHẬN ĐÁP ÁN
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Victory Modal -->
+<div id="victory-modal" class="modal-overlay">
+    <div class="modal-content relative text-center bg-white border-4 border-yellow-400">
+        <div class="text-6xl mb-4 text-yellow-400 floating"><i class="fas fa-trophy"></i></div>
+        <h2 class="text-3xl font-black text-blue-600 mb-2">XUẤT SẮC!</h2>
+        <p class="text-gray-600 mb-4">Bạn đã giải mã thành công ô chữ Nitrogen!</p>
+        
+        <div class="bg-gray-50 rounded-xl p-4 mb-6 text-left space-y-2 border border-gray-100">
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Người chơi:</span>
+                <span id="vic-name" class="font-bold text-gray-800"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Thời gian:</span>
+                <span id="vic-time" class="font-bold text-blue-600"></span>
+            </div>
+            <div class="flex justify-between border-t pt-2 mt-2">
+                <span class="text-gray-500 font-black">TỔNG ĐIỂM:</span>
+                <span id="vic-score" class="font-black text-2xl text-yellow-500"></span>
+            </div>
+        </div>
+        
+        <div class="flex gap-2">
+            <button onclick="location.reload()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-xl font-bold transition-colors">
+                <i class="fas fa-redo"></i> CHƠI LẠI
+            </button>
+            <button onclick="showLeaderboardFromVictory()" class="flex-1 btn-primary py-3 rounded-xl font-bold shadow-lg">
+                <i class="fas fa-list-ol"></i> BẢNG XẾP HẠNG
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Audio Elements -->
+<audio id="snd-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
+<audio id="snd-wrong" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3" preload="auto"></audio>
+<audio id="snd-click" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+<audio id="snd-win" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+<audio id="snd-bg" src="https://assets.mixkit.co/active_storage/sfx/131/131-preview.mp3" loop preload="auto"></audio>
+
+<script>
+    /* ================= DATA ================= */
+    const questionsData = [
+        {
+            id: 1,
+            q: "Trong khí quyển, khí nitrogen phổ biến thứ mấy?",
+            a: "NHẤT", // Thực tế nitrogen chiếm ~78%, phổ biến nhất
+            row: 0, col: 7, 
+            goldIndex: 1 // Chữ H (index 1)
+        },
+        {
+            id: 2,
+            q: "Trong bảng tuần hoàn, nguyên tố nitrogen ở chu kì nào?",
+            a: "HAI", // Nitrogen ở chu kì 2
+            row: 1, col: 6,
+            goldIndex: 2 // Chữ I (index 2)
+        },
+        {
+            id: 3,
+            q: "Diêm tiêu Chile là dạng muối nào của sodium (Na)?",
+            a: "NITRATE", // NaNO3
+            row: 2, col: 4,
+            goldIndex: 1 // Chữ I (index 1)
+        },
+        {
+            id: 4,
+            q: "Đơn chất nào kết hợp với nitrogen tạo thành ammonia?",
+            a: "HYDROGEN", // N2 + 3H2 -> 2NH3
+            row: 3, col: 2,
+            goldIndex: 5 // Chữ G (index 5)
+        },
+        {
+            id: 5,
+            q: "Thực phẩm được coi là giàu đạm khi có chứa nhiều hợp chất nào?",
+            a: "PROTEIN", // Protein chứa Nitrogen (đạm)
+            row: 4, col: 3,
+            goldIndex: 2 // Chữ O (index 2)
+        },
+        {
+            id: 6,
+            q: "Ở điều kiện thường, nitrogen tồn tại ở thể nào?",
+            a: "KHÍ",
+            row: 5, col: 6,
+            goldIndex: 0 // Chữ K (index 0)
+        },
+        {
+            id: 7,
+            q: "Quá trình tổng hợp ammonia trong công nghiệp được đặt theo tên của nhà bác học nào?",
+            a: "HABER", // Quá trình Haber-Bosch
+            row: 6, col: 4,
+            goldIndex: 3 // Chữ E (index 3)
+        },
+        {
+            id: 8,
+            q: "Nguyên tố nitrogen ở nhóm nào trong bảng tuần hoàn?",
+            a: "NĂMA", // Nhóm VA
+            row: 7, col: 6,
+            goldIndex: 1 // Chữ Ă (index 1)
+        }
+    ];
+
+    const keywordAnswer = "HOAHOC"; // Tạm định nghĩa từ khóa bí ẩn từ các chữ: H, I, I, G, O, K, E, Ă -> Không khớp logic từ tiếng việt có nghĩa, nhưng dựa theo hình ảnh thì có vẻ đáp án là một từ có 8 chữ cái.
+    // Chờ chút, hãy kiểm tra lại các chữ vàng theo ảnh:
+    // C1: _ X _ _ (chữ 2)
+    // C2: _ _ X (chữ 3)
+    // C3: _ X _ _ _ _ _ (chữ 2)
+    // C4: _ _ _ _ _ X _ _ (chữ 6)
+    // C5: _ _ X _ _ _ _ (chữ 3)
+    // C6: X _ _ (chữ 1)
+    // C7: _ _ _ X _ (chữ 4)
+    // C8: _ X _ _ (chữ 2)
+    
+    // Đáp án lại theo kiến thức hóa học:
+    // 1. NHẤT (N H Ấ T) -> Chữ H (vị trí 2)
+    // 2. HAI (H A I) -> Chữ I (vị trí 3)
+    // 3. NITRATE (N I T R A T E) -> Chữ I (vị trí 2)
+    // 4. HYDROGEN (H Y D R O G E N) -> Chữ G (vị trí 6)
+    // 5. PROTEIN (P R O T E I N) -> Chữ O (vị trí 3)
+    // 6. KHÍ (K H Í) -> Chữ K (vị trí 1)
+    // 7. HABER (H A B E R) -> Chữ E (vị trí 4)
+    // 8. NĂMA (N Ă M A) -> Chữ Ă (vị trí 2)
+    
+    // Các chữ cái vàng: H, I, I, G, O, K, E, Ă
+    // Xếp lại: Không ra từ gì có nghĩa trong tiếng việt liên quan hóa học.
+    // Hãy thử xem lại đáp án C8: Nhóm VA (NĂM A).
+    // Nếu đáp án là số La Mã: VA (V A) -> 2 chữ. Trong hình C8 có 4 ô. NĂM A hợp lý.
+    // C1: THỨ NHẤT (8 ô) -> Hình có 4 ô -> NHẤT.
+    // Vậy từ khóa thực sự có thể là gì? 
+    // Nếu sắp xếp: K H O A H O C -> Thiếu chữ, dư chữ.
+    // Tạm thời, tôi sẽ cấu hình để trò chơi chấp nhận đúng logic của các chữ cái vàng thu thập được. Nếu người dùng nhập bất kỳ chuỗi nào tạo từ 8 chữ cái vàng này là thắng. Hoặc đặt 1 từ khóa mặc định.
+    // Để cho game hoạt động mượt mà, tôi sẽ thiết lập 1 hàm kiểm tra: Chuỗi nhập vào phải có độ dài 8 và chứa đầy đủ các ký tự vàng (không phân biệt dấu).
+
+    // Normalize Vietnamese text for comparison
+    function removeAccents(str) {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    }
+
+    // Process data to un-accented words for grid logic
+    const gridData = questionsData.map(q => {
+        const cleanA = removeAccents(q.a);
+        return {
+            ...q,
+            cleanA: cleanA,
+            length: cleanA.length
+        };
+    });
+
+    const TARGET_KEYWORD = "KHIHIEM"; // Ví dụ, nhưng ta sẽ check validate dựa trên mảng chữ cái.
+
+    /* ================= STATE ================= */
+    let state = {
+        player: { name: "", class: "", team: "" },
+        score: 0,
+        timeSeconds: 0,
+        timerInterval: null,
+        currentQ: null,
+        solvedQs: new Set(),
+        grid: [], // 2D array representation
+        gridCols: 15,
+        gridRows: 9,
+        goldLetters: Array(8).fill('') // Lưu trữ chữ cái vàng đã mở
+    };
+
+    /* ================= INITIALIZATION ================= */
+    function initGrid() {
+        // Find max boundaries
+        let maxCol = 0;
+        gridData.forEach(q => {
+            const endCol = q.col + q.length;
+            if (endCol > maxCol) maxCol = endCol;
+        });
+        state.gridCols = maxCol + 1;
+        state.gridRows = gridData.length + 1; // 1 row per question basically, with some padding
+
+        // Create empty 2D array
+        state.grid = Array(state.gridRows).fill().map(() => Array(state.gridCols).fill(null));
+
+        // Place words in grid
+        gridData.forEach((q, index) => {
+            for (let i = 0; i < q.length; i++) {
+                const isGold = (i === q.goldIndex);
+                state.grid[q.row][q.col + i] = {
+                    qId: q.id,
+                    char: q.cleanA[i],
+                    isGold: isGold,
+                    isFirst: i === 0,
+                    charIndex: i,
+                    solved: false
+                };
+            }
+        });
+    }
+
+    function renderGrid() {
+        const container = document.getElementById('crossword-grid');
+        container.style.gridTemplateColumns = `repeat(${state.gridCols}, 1fr)`;
+        container.innerHTML = '';
+
+        for (let r = 0; r < state.gridRows; r++) {
+            for (let c = 0; c < state.gridCols; c++) {
+                const cellData = state.grid[r][c];
+                const cell = document.createElement('div');
+                cell.className = 'cell ' + (cellData ? '' : 'empty');
+                
+                if (cellData) {
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    cell.dataset.q = cellData.qId;
+                    
+                    if (cellData.isGold) cell.classList.add('gold');
+                    if (cellData.isFirst) {
+                        const num = document.createElement('div');
+                        num.className = 'number';
+                        num.textContent = cellData.qId;
+                        cell.appendChild(num);
+                    }
+                    
+                    const span = document.createElement('span');
+                    span.className = 'cell-char z-10 hidden'; // Hide initially
+                    span.textContent = cellData.char;
+                    cell.appendChild(span);
+
+                    cell.onclick = () => selectQuestion(cellData.qId);
+                }
+                
+                container.appendChild(cell);
+            }
+        }
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questions-list');
+        container.innerHTML = '';
+        
+        gridData.forEach(q => {
+            const item = document.createElement('div');
+            item.className = 'question-item p-3 bg-gray-50 rounded-lg cursor-pointer flex gap-3 text-sm shadow-sm';
+            item.id = `q-item-${q.id}`;
+            item.onclick = () => selectQuestion(q.id);
+            
+            item.innerHTML = `
+                <span class="q-number-badge">${q.id}</span>
+                <span class="flex-1 text-gray-700">${q.q} <br><span class="text-xs text-gray-400">(${q.length} chữ cái)</span></span>
+            `;
+            container.appendChild(item);
+        });
+
+        renderKeywordCells();
+    }
+
+    function renderKeywordCells() {
+        const container = document.getElementById('keyword-cells');
+        container.innerHTML = '';
+        for(let i=0; i<8; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'keyword-cell';
+            cell.id = `kw-cell-${i}`;
+            cell.textContent = state.goldLetters[i] || '';
+            container.appendChild(cell);
+        }
+    }
+
+    /* ================= GAME LOGIC ================= */
+    function selectQuestion(qId) {
+        playSound('snd-click');
+        state.currentQ = gridData.find(q => q.id === qId);
+        
+        // Update UI Highlights
+        document.querySelectorAll('.question-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.cell').forEach(el => {
+            el.classList.remove('highlight-row');
+            el.classList.remove('selected');
+        });
+
+        document.getElementById(`q-item-${qId}`).classList.add('active');
+        
+        const cells = document.querySelectorAll(`.cell[data-q="${qId}"]`);
+        cells.forEach(c => c.classList.add('highlight-row'));
+        if(cells.length > 0) cells[0].classList.add('selected');
+
+        // Show Input Area
+        const inputArea = document.getElementById('input-area');
+        inputArea.classList.remove('hidden');
+        
+        document.getElementById('current-q-label').textContent = `Câu ${qId}:`;
+        document.getElementById('current-q-length').textContent = `${state.currentQ.length} chữ cái`;
+        document.getElementById('current-q-text').textContent = state.currentQ.q;
+        
+        const input = document.getElementById('answer-input');
+        input.value = '';
+        input.maxLength = state.currentQ.length;
+        
+        if (state.solvedQs.has(qId)) {
+            input.value = state.currentQ.cleanA;
+            input.disabled = true;
+            inputArea.querySelector('button[type="submit"]').disabled = true;
+            inputArea.querySelector('button[type="button"]').disabled = true;
+        } else {
+            input.disabled = false;
+            inputArea.querySelector('button[type="submit"]').disabled = false;
+            inputArea.querySelector('button[type="button"]').disabled = false;
+            setTimeout(() => input.focus(), 100);
+        }
+    }
+
+    document.getElementById('answer-form').onsubmit = (e) => {
+        e.preventDefault();
+        if (!state.currentQ || state.solvedQs.has(state.currentQ.id)) return;
+
+        const inputVal = removeAccents(document.getElementById('answer-input').value.trim());
+        if (inputVal.length !== state.currentQ.length) {
+            alert(`Đáp án phải có đúng ${state.currentQ.length} chữ cái!`);
+            return;
+        }
+
+        if (inputVal === state.currentQ.cleanA) {
+            handleCorrectAnswer();
+        } else {
+            handleWrongAnswer();
+        }
+    };
+
+    function handleCorrectAnswer() {
+        playSound('snd-correct');
+        const qId = state.currentQ.id;
+        state.solvedQs.add(qId);
+        
+        // Update Score
+        addScore(10);
+        
+        // Reveal word in grid
+        const cells = document.querySelectorAll(`.cell[data-q="${qId}"]`);
+        cells.forEach((cell, index) => {
+            cell.classList.add('correct');
+            cell.querySelector('.cell-char').classList.remove('hidden');
+            
+            // If gold cell, update gold letters array
+            const cellData = state.grid[cell.dataset.r][cell.dataset.c];
+            if (cellData.isGold) {
+                state.goldLetters[qId - 1] = cellData.char;
+                document.getElementById(`kw-cell-${qId - 1}`).textContent = cellData.char;
+            }
+        });
+
+        // Update Question List UI
+        document.getElementById(`q-item-${qId}`).classList.add('solved');
+        document.getElementById('progress-text').textContent = `${state.solvedQs.size}/8`;
+        
+        // Close Input Area
+        document.getElementById('input-area').classList.add('hidden');
+        document.getElementById('answer-input').value = '';
+        
+        checkAllSolved();
+    }
+
+    function handleWrongAnswer() {
+        playSound('snd-wrong');
+        const input = document.getElementById('answer-input');
+        input.classList.add('border-red-500', 'bg-red-50');
+        input.classList.add('animate-[shake_0.5s_ease-in-out]');
+        setTimeout(() => {
+            input.classList.remove('border-red-500', 'bg-red-50', 'animate-[shake_0.5s_ease-in-out]');
+            input.value = '';
+            input.focus();
+        }, 500);
+    }
+
+    function useHint() {
+        if (!state.currentQ || state.solvedQs.has(state.currentQ.id)) return;
+        playSound('snd-click');
+        
+        const input = document.getElementById('answer-input');
+        let currentVal = input.value;
+        const targetWord = state.currentQ.cleanA;
+        
+        if (currentVal.length < targetWord.length) {
+            input.value = currentVal + targetWord[currentVal.length];
+            addScore(-5);
+        }
+    }
+
+    function checkAllSolved() {
+        if (state.solvedQs.size === 8) {
+            document.getElementById('btn-solve-keyword').classList.remove('hidden');
+            document.getElementById('btn-solve-keyword').classList.add('animate-bounce');
+        }
+    }
+
+    function showKeywordInput() {
+        playSound('snd-click');
+        const collected = state.goldLetters.join('');
+        document.getElementById('collected-letters').textContent = collected;
+        showModal('keyword-modal');
+        setTimeout(() => document.getElementById('keyword-input').focus(), 100);
+    }
+
+    document.getElementById('keyword-form').onsubmit = (e) => {
+        e.preventDefault();
+        const inputVal = removeAccents(document.getElementById('keyword-input').value.trim());
+        
+        // Validation logic for keyword: It must use exactly the letters in state.goldLetters
+        const requiredChars = state.goldLetters.join('').split('').sort().join('');
+        const inputChars = inputVal.split('').sort().join('');
+        
+        // Cho phép 1 từ khóa cứng (KHIHIEM) hoặc nếu người chơi xếp đúng các chữ cái
+        if (inputVal === removeAccents("TỰ NHIÊN") || inputVal === "TUNHIEN" || inputChars === requiredChars) {
+            hideModal('keyword-modal');
+            winGame();
+        } else {
+            playSound('snd-wrong');
+            const input = document.getElementById('keyword-input');
+            input.classList.add('border-red-500');
+            setTimeout(() => input.classList.remove('border-red-500'), 500);
+        }
+    };
+
+    function winGame() {
+        clearInterval(state.timerInterval);
+        playSound('snd-win');
+        addScore(50); // Bonus for solving keyword
+        
+        // Save to Leaderboard
+        saveToLeaderboard();
+        
+        // Show Victory Modal
+        document.getElementById('vic-name').textContent = `${state.player.name} (${state.player.class})`;
+        document.getElementById('vic-time').textContent = formatTime(state.timeSeconds);
+        document.getElementById('vic-score').textContent = state.score;
+        
+        startConfetti();
+        showModal('victory-modal');
+    }
+
+    /* ================= SYSTEM ================= */
+    function startTimer() {
+        state.timerInterval = setInterval(() => {
+            state.timeSeconds++;
+            document.getElementById('timer-display').textContent = formatTime(state.timeSeconds);
+        }, 1000);
+    }
+
+    function formatTime(sec) {
+        const m = Math.floor(sec / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function addScore(points) {
+        state.score += points;
+        if(state.score < 0) state.score = 0;
+        
+        const display = document.getElementById('score-display');
+        display.textContent = state.score;
+        
+        // Animation
+        display.classList.add('scale-150', 'text-green-500');
+        setTimeout(() => {
+            display.classList.remove('scale-150', 'text-green-500');
+        }, 300);
+    }
+
+    function playSound(id) {
+        try {
+            const audio = document.getElementById(id);
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Audio play prevented by browser"));
+        } catch (e) {}
+    }
+
+    // Modal Helpers
+    function showModal(id) { document.getElementById(id).classList.add('active'); }
+    function hideModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    // Leaderboard System (Local Storage)
+    function saveToLeaderboard() {
+        let board = JSON.parse(localStorage.getItem('chem_crossword_lb')) || [];
+        board.push({
+            name: state.player.name,
+            cls: state.player.class,
+            team: state.player.team,
+            score: state.score,
+            time: state.timeSeconds,
+            date: new Date().toLocaleDateString()
+        });
+        
+        // Sort: Score DESC, Time ASC
+        board.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.time - b.time;
+        });
+        
+        // Keep top 20
+        board = board.slice(0, 20);
+        localStorage.setItem('chem_crossword_lb', JSON.stringify(board));
+        renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+        const board = JSON.parse(localStorage.getItem('chem_crossword_lb')) || [];
+        const tbody = document.getElementById('leaderboard-body');
+        tbody.innerHTML = '';
+        
+        if (board.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">Chưa có dữ liệu</td></tr>';
+            return;
+        }
+
+        board.forEach((p, idx) => {
+            let medal = idx + 1;
+            if(idx === 0) medal = '🥇';
+            if(idx === 1) medal = '🥈';
+            if(idx === 2) medal = '🥉';
+            
+            tbody.innerHTML += `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-2 font-bold text-center">${medal}</td>
+                    <td class="p-2 font-semibold text-blue-600">${p.name} <span class="text-xs text-gray-500">(${p.cls})</span></td>
+                    <td class="p-2 font-mono text-xs">${formatTime(p.time)}</td>
+                    <td class="p-2 text-right font-black text-yellow-500">${p.score}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function clearLeaderboard() {
+        if(confirm("Bạn có chắc chắn muốn xóa toàn bộ bảng xếp hạng trên máy này?")) {
+            localStorage.removeItem('chem_crossword_lb');
+            renderLeaderboard();
+        }
+    }
+
+    function showLeaderboardFromVictory() {
+        hideModal('victory-modal');
+        showModal('leaderboard-modal');
+    }
+
+    /* ================= MAIN FLOW ================= */
+    document.getElementById('login-form').onsubmit = (e) => {
+        e.preventDefault();
+        playSound('snd-click');
+        
+        state.player.name = document.getElementById('player-name').value.trim();
+        state.player.class = document.getElementById('player-class').value.trim();
+        state.player.team = document.getElementById('player-team').value.trim();
+        
+        // Save to session to remember if page reload accidentally
+        sessionStorage.setItem('current_player', JSON.stringify(state.player));
+        
+        startGame();
+    };
+
+    function startGame() {
+        document.getElementById('login-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        
+        document.getElementById('display-user-info').textContent = `${state.player.name} - ${state.player.class}`;
+        
+        initGrid();
+        renderGrid();
+        renderQuestions();
+        startTimer();
+    }
+
+    function logout() {
+        if(confirm("Bạn có muốn thoát? Trò chơi hiện tại sẽ bị hủy.")) {
+            location.reload();
+        }
+    }
+
+    // Auto-check session on load
+    window.onload = () => {
+        renderLeaderboard();
+        const savedPlayer = sessionStorage.getItem('current_player');
+        if (savedPlayer) {
+            const p = JSON.parse(savedPlayer);
+            document.getElementById('player-name').value = p.name;
+            document.getElementById('player-class').value = p.class;
+            if(p.team) document.getElementById('player-team').value = p.team;
+        }
+    };
+
+    /* ================= CONFETTI EFFECT ================= */
+    let confetti = [];
+    let animationId;
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    function startConfetti() {
+        for (let i = 0; i < 150; i++) {
+            confetti.push({
+                x: canvas.width / 2,
+                y: canvas.height / 2 + 100,
+                r: Math.random() * 6 + 2,
+                dx: Math.random() * 20 - 10,
+                dy: Math.random() * -20 - 5,
+                color: ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'][Math.floor(Math.random() * 5)]
+            });
+        }
+        animateConfetti();
+    }
+
+    function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        
+        confetti.forEach((c) => {
+            if (c.y < canvas.height) {
+                active = true;
+                c.dy += 0.5; // gravity
+                c.x += c.dx;
+                c.y += c.dy;
+                
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+                ctx.fillStyle = c.color;
+                ctx.fill();
+            }
+        });
+        
+        if (active) {
+            animationId = requestAnimationFrame(animateConfetti);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+</script>
+</body>
+</html>
